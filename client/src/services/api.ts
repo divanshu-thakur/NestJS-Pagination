@@ -25,8 +25,9 @@ export interface CreateUserDto {
 }
 
 const api = {
-  getUsers: async (page: number = 1, limit: number = 10): Promise<PaginatedResponse> => {
-    const response = await axios.get(`${API_URL}/users?page=${page}&limit=${limit}`);
+  getUsers: async (searchBy: string = '', sortBy: 'id' | 'name' | 'email' | 'createdAt' = 'name', order: 'asc' | 'desc' = 'asc', page: number = 1, limit: number = 10): Promise<PaginatedResponse> => {
+  // getUsers: async (page: number = 1, limit: number = 10): Promise<PaginatedResponse> => {
+    const response = await axios.get(`${API_URL}/users?searchBy=${searchBy}&sortBy=${sortBy}&order=${order.toUpperCase()}&page=${page}&limit=${limit}`);
     return response.data;
   },
 

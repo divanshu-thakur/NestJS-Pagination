@@ -8,6 +8,7 @@ import {
   TableHead,
   TableRow,
   TablePagination,
+  TableSortLabel,
   Box,
   CircularProgress,
 } from '@mui/material';
@@ -16,6 +17,9 @@ import { User } from '../services/api';
 interface UserTableProps {
   users: User[];
   loading: boolean;
+  sortBy: keyof User;
+  order: 'asc' | 'desc';
+  onRequestSort: (property: keyof User) => void;
   total: number;
   page: number;
   limit: number;
@@ -26,6 +30,9 @@ interface UserTableProps {
 const UserTable: React.FC<UserTableProps> = ({
   users,
   loading,
+  sortBy,
+  order,
+  onRequestSort,
   total,
   page,
   limit,
@@ -40,16 +47,37 @@ const UserTable: React.FC<UserTableProps> = ({
     onLimitChange(parseInt(event.target.value, 10));
   };
 
+  const headCells: Array<{ id: keyof User; label: string }> = [
+    { id: 'id', label: 'ID' },
+    { id: 'name', label: 'Name' },
+    { id: 'email', label: 'Email' },
+    { id: 'createdAt', label: 'Created At' },
+  ];
+
+  const createSortHandler = (property: keyof User) => () => {
+    onRequestSort(property);
+  };
+
   return (
     <Paper>
       <TableContainer>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Created At</TableCell>
+              {headCells.map((headCell) => (
+                <TableCell
+                  key={headCell.id}
+                  sortDirection={sortBy === headCell.id ? order : false}
+                >
+                  <TableSortLabel
+                    active={sortBy === headCell.id}
+                    direction={sortBy === headCell.id ? order : 'asc'}
+                    onClick={createSortHandler(headCell.id)}
+                  >
+                    {headCell.label}
+                  </TableSortLabel>
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>

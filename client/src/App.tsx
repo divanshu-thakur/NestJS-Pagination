@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Container, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import UserForm from './components/UserForm';
 import UserTable from './components/UserTable';
@@ -14,7 +14,9 @@ const theme = createTheme({
 
 function App() {
   const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<true | false>(true);
+  const [sortBy, setSortBy] = useState<keyof User>('name');
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc'); 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
@@ -22,11 +24,12 @@ function App() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await api.getUsers(page, limit);
+      const response = await api.getUsers('', sortBy, order, page, limit);
       setUsers(response.data);
       setTotal(response.meta.total);
     } catch (error) {
       console.error('Failed to fetch users:', error);
+      toast.error('Failed to fetch users.');
     } finally {
       setLoading(false);
     }
@@ -34,10 +37,17 @@ function App() {
 
   useEffect(() => {
     fetchUsers();
-  }, [page, limit]);
+  }, [sortBy, order, page, limit]);
 
   const handleUserAdded = () => {
     fetchUsers();
+  };
+
+  const handleRequestSort = (property: keyof User) => {
+    const isAsc = sortBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setSortBy(property);
+    setPage(1);
   };
 
   return (
@@ -48,6 +58,9 @@ function App() {
         <UserTable
           users={users}
           loading={loading}
+          sortBy={sortBy}
+          order={order}
+          onRequestSort={handleRequestSort}
           total={total}
           page={page}
           limit={limit}

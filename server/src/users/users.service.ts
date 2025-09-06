@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { Op } from 'sequelize';
 import { User } from './users.model';
 import { CreateUserDto, CreateUsersDto } from './dto/create-user.dto';
 import { PaginationDto } from './dto/pagination.dto';
@@ -13,13 +14,21 @@ export class UsersService {
   ) {}
 
   async findAll(paginationDto: PaginationDto) {
-    const { page = 1, limit = 10 } = paginationDto;
+    const { searchBy = '', sortBy = 'name', order = 'ASC', page = 1, limit = 10 } = paginationDto;
     const offset = Number((page - 1) * limit);
 
     const { count, rows } = await this.userModel.findAndCountAll({
+      where: searchBy
+    ? {
+        [Op.or]: [
+          { name: { [Op.like]: `%${searchBy}%` } },
+          { email: { [Op.like]: `%${searchBy}%` } },
+        ],
+      }
+    : {},
       limit: Number(limit),
       offset,
-      order: [['name', 'ASC']],
+      order: [[sortBy, order]],
     });
 
     return {
