@@ -3,6 +3,7 @@ import { Container, CssBaseline, ThemeProvider, createTheme } from '@mui/materia
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import UserForm from './components/UserForm';
+import UserSearch from './components/UserSearch';
 import UserTable from './components/UserTable';
 import api, { User } from './services/api';
 
@@ -15,6 +16,8 @@ const theme = createTheme({
 function App() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<true | false>(true);
+  const [searchInput, setSearchInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<keyof User>('name');
   const [order, setOrder] = useState<'asc' | 'desc'>('asc'); 
   const [page, setPage] = useState(1);
@@ -24,7 +27,7 @@ function App() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await api.getUsers('', sortBy, order, page, limit);
+      const response = await api.getUsers(searchTerm, sortBy, order, page, limit);
       setUsers(response.data);
       setTotal(response.meta.total);
     } catch (error) {
@@ -37,7 +40,7 @@ function App() {
 
   useEffect(() => {
     fetchUsers();
-  }, [sortBy, order, page, limit]);
+  }, [searchTerm, sortBy, order, page, limit]);
 
   const handleUserAdded = () => {
     fetchUsers();
@@ -50,11 +53,24 @@ function App() {
     setPage(1);
   };
 
+  const handleSearchClick = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setPage(1);
+    setSearchTerm(searchInput.trim());
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <UserForm onUserAdded={handleUserAdded} />
+        <UserSearch
+          loading={loading}
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
+          setSearchTerm={setSearchTerm}
+          handleSearchClick={handleSearchClick}
+        />
         <UserTable
           users={users}
           loading={loading}
